@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Lib", "Common.Lib\Common.Lib.csproj", "{9DF0F25E-813D-4DF9-BCF5-E34C122C312F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common.DbHelper", "Common.DbHelper", "{2321DDA7-D88D-4978-8681-B21D66CE8D9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.Redis", "DbHelper.Redis\DbHelper.Redis.csproj", "{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,12 +13,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9DF0F25E-813D-4DF9-BCF5-E34C122C312F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9DF0F25E-813D-4DF9-BCF5-E34C122C312F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9DF0F25E-813D-4DF9-BCF5-E34C122C312F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9DF0F25E-813D-4DF9-BCF5-E34C122C312F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5} = {2321DDA7-D88D-4978-8681-B21D66CE8D9D}
 	EndGlobalSection
 EndGlobal
