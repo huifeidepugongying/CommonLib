@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace Common.Lib
 {
     public class Class1
-    {
+    { 
     }
 }
