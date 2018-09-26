@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("Common.Lib")]
+[assembly: AssemblyTitle("DbHelper.Redis")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("Common.Lib")]
+[assembly: AssemblyProduct("DbHelper.Redis")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid("9df0f25e-813d-4df9-bcf5-e34c122c312f")]
+[assembly: Guid("f69913b6-51ec-495e-8b3a-91dc70fc1cf5")]
 
 // 程序集的版本信息由下列四个值组成: 
 //
