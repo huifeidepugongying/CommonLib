@@ -50,12 +50,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RedisConnectionHelper.cs" />
+    <Compile Include="CommEnum\RangeType.cs" />
+    <Compile Include="CommEnum\LexicalOrder.cs" />
+    <Compile Include="StackExchangeRedisConnectionHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RedisHelper.cs" />
+    <Compile Include="StackExchangeRedisHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interface\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

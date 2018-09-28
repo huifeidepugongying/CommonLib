@@ -9,13 +9,12 @@ using System.Threading.Tasks;
 
 namespace DbHelper.Redis
 {
-    public class RedisConnectionHelper
+    public class StackExchangeRedisConnectionHelper
     {
         //系统自定义Key前缀
-        public static readonly string SysCustomKey = ConfigurationManager.AppSettings["redisKey"] ?? "";
+        public static readonly string SysCustomKey = ConfigurationManager.AppSettings["RedisKey"] ?? "";
 
-        //"127.0.0.1:6379,allowadmin=true
-        private static readonly string RedisConnectionString = ConfigurationManager.ConnectionStrings["RedisExchangeHosts"].ConnectionString;
+        private static readonly ConnectionStringSettings RedisConnection = ConfigurationManager.ConnectionStrings["RedisConnection"];
 
         private static readonly object Locker = new object();
         private static ConnectionMultiplexer instance;
@@ -49,20 +48,24 @@ namespace DbHelper.Redis
         /// <returns></returns>
         public static ConnectionMultiplexer GetConnectionMultiplexer(string connectionString)
         {
-            List<string> connList = new List<string>();
-            connList.AddRange(connectionString.Split(",".ToCharArray()));
-            var keyConn = string.Join(",", connList.OrderBy(i => i).ToList());
-            if (!ConnectionCache.ContainsKey(keyConn))
+            if (!ConnectionCache.ContainsKey(connectionString))
             {
-                ConnectionCache[keyConn] = GetManager(keyConn);
+                ConnectionCache[connectionString] = GetManager(connectionString);
             }
-            return ConnectionCache[keyConn];
+            return ConnectionCache[connectionString];
         }
 
         private static ConnectionMultiplexer GetManager(string connectionString = null)
         {
-            connectionString = connectionString ?? RedisConnectionString;
-            var connect = ConnectionMultiplexer.Connect(connectionString);
+            connectionString = connectionString ?? (RedisConnection == null ? "" : RedisConnection.ConnectionString);
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return null;
+            }
+            List<string> connList = new List<string>();
+            connList.AddRange(connectionString.Split(",".ToCharArray()));
+            var keyConn = string.Join(",", connList.OrderBy(i => i).ToList());
+            var connect = ConnectionMultiplexer.Connect(keyConn);
 
             //注册如下事件
             connect.ConnectionFailed += MuxerConnectionFailed;

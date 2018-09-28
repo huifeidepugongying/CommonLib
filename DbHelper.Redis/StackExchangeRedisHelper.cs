@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DbHelper.Redis.CommEnum;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -8,26 +9,31 @@ using System.Threading.Tasks;
 
 namespace DbHelper.Redis
 {
-    public class RedisHelper
+    public class StackExchangeRedisHelper
     {
-        private int DbNum { get; }
-        private readonly ConnectionMultiplexer conn;
-        public string CustomKey;
+        private int dbNum { get; }
+        private readonly IConnectionMultiplexer conn;
+        private string SysCustomKey { get; set; }
+
+        private string RedisConnectionString { get; set; }
 
         #region 构造函数
 
-        public RedisHelper(int dbNum = 0)
-                : this(dbNum, null)
+        public StackExchangeRedisHelper(int dbNum = 0, string sysCustomKey = "")
+                : this(dbNum, null, sysCustomKey)
         {
         }
 
-        public RedisHelper(int dbNum, string readWriteHosts)
+
+        public StackExchangeRedisHelper(int dbNum, string redisConnectionString, string sysCustomKey)
         {
-            DbNum = dbNum;
-            conn =
-                string.IsNullOrWhiteSpace(readWriteHosts) ?
-                RedisConnectionHelper.Instance :
-                RedisConnectionHelper.GetConnectionMultiplexer(readWriteHosts);
+            this.dbNum = dbNum;
+            this.SysCustomKey = sysCustomKey;
+            if (string.IsNullOrWhiteSpace(sysCustomKey))
+            {
+                this.SysCustomKey = StackExchangeRedisConnectionHelper.SysCustomKey;
+            }
+            conn = string.IsNullOrWhiteSpace(redisConnectionString) ? StackExchangeRedisConnectionHelper.Instance : StackExchangeRedisConnectionHelper.GetConnectionMultiplexer(redisConnectionString);
         }
 
         #endregion 构造函数
@@ -36,13 +42,13 @@ namespace DbHelper.Redis
 
         private string AddSysCustomKey(string oldKey)
         {
-            var prefixKey = CustomKey ?? RedisConnectionHelper.SysCustomKey;
+            var prefixKey = SysCustomKey ?? StackExchangeRedisConnectionHelper.SysCustomKey;
             return prefixKey + oldKey;
         }
 
         private List<string> AddSysCustomKeyList(IEnumerable<string> oldKeyList)
         {
-            var prefixKey = CustomKey ?? RedisConnectionHelper.SysCustomKey;
+            var prefixKey = SysCustomKey ?? StackExchangeRedisConnectionHelper.SysCustomKey;
             List<string> newKeyList = new List<string>();
             newKeyList.AddRange(oldKeyList);
             for (int i = 0; i < newKeyList.Count; i++)
@@ -54,7 +60,7 @@ namespace DbHelper.Redis
 
         private T Do<T>(Func<IDatabase, T> func)
         {
-            var database = conn.GetDatabase(DbNum);
+            var database = conn.GetDatabase(dbNum);
             return func(database);
         }
 
@@ -66,6 +72,21 @@ namespace DbHelper.Redis
 
         private T ConvertObj<T>(RedisValue value)
         {
+            string result = "";
+            var typeT = typeof(T);
+            if (typeT.Equals(typeof(string)))
+            {
+                result = (!value.IsNull) && (!value.IsNullOrEmpty) ? value.ToString() : "";
+                return (T)Convert.ChangeType(result, typeT);
+            }
+            else if (typeT.Equals(typeof(int)) || typeT.Equals(typeof(long)) || typeT.Equals(typeof(float)) || typeT.Equals(typeof(double)) || typeT.Equals(typeof(decimal)) || typeT.Equals(typeof(byte)) || typeT.Equals(typeof(sbyte)) || typeT.Equals(typeof(ulong)) || typeT.Equals(typeof(short)) || typeT.Equals(typeof(ushort)) || typeT.Equals(typeof(uint)) || typeT.Equals(typeof(char)) || typeT.Equals(typeof(bool)))
+            {
+                if ((value.IsNull) || (value.IsNullOrEmpty) || !value.HasValue)
+                {
+                    return default(T);
+                }
+                return (T)Convert.ChangeType(value, typeT);
+            }
             return JsonConvert.DeserializeObject<T>(value);
         }
 
@@ -948,11 +969,13 @@ namespace DbHelper.Redis
         #region 同步方法
 
         /// <summary>
-        /// 添加
+        /// 添加一个数据到Key
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="score"></param>
+        /// <typeparam name="T">要添加的数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值</param>
+        /// <param name="score">分数</param>
+        /// <returns></returns>
         public bool SortedSetAdd<T>(string key, T value, double score)
         {
             key = AddSysCustomKey(key);
@@ -962,16 +985,145 @@ namespace DbHelper.Redis
         /// <summary>
         /// 添加一个集合到Key
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="score">排序分数，为空将获取集合中最大score加1</param>
+        /// <typeparam name="T">要添加的数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="valueMapScore">值与分数的对照集合</param>
         /// <returns></returns>
         public long SortedSetAdd<T>(string key, IEnumerable<KeyValuePair<T, double?>> valueMapScore)
         {
             key = AddSysCustomKey(key);
             SortedSetEntry[] rValue = valueMapScore.Select(o => new SortedSetEntry(ConvertJson<T>(o.Key), o.Value ?? 0)).ToArray();
             return Do(redis => redis.SortedSetAdd(key, rValue));
+        }
+
+        /// <summary>
+        /// 获取指定起始值到结束值的数据
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="begValue">起始值</param>
+        /// <param name="endValue">结束值</param>
+        /// <param name="rangeType">开闭区间控制</param>
+        /// <returns></returns>
+        public List<T> SortedSetRangeByValue<T>(string key, T begValue, T endValue, RangeType rangeType = RangeType.None)
+        {
+            key = AddSysCustomKey(key);
+            var bValue = ConvertJson<T>(begValue);
+            var eValue = ConvertJson<T>(endValue);
+            var rValue = Do(redis => redis.SortedSetRangeByValue(key, bValue, eValue, (Exclude)rangeType));
+            return ConvetList<T>(rValue);
+        }
+
+        /// <summary>
+        /// 先根据分数Scores排序，再根据value进行排序，然后获取索引从startIndex到stopIndex的数据
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="startIndex">起始索引</param>
+        /// <param name="stopIndex">结束索引，-1表示到结束，0为1条</param>
+        /// <param name="order">元素的排序规则</param>
+        /// <returns></returns>
+        public List<T> SortedSetRangeByLexical<T>(string key, long startIndex = 0, long stopIndex = -1, LexicalOrder order = LexicalOrder.Ascending)
+        {
+            key = AddSysCustomKey(key);
+            Order orderBy = (Order)order;
+            var rValue = Do(redis => redis.SortedSetRangeByRank(key, startIndex, stopIndex, orderBy));
+            return ConvetList<T>(rValue);
+        }
+
+        /// <summary>
+        /// 先根据分数Scores排序，再根据value进行排序，然后获取索引从startIndex到stopIndex的数据，数据 包含Score，返回数据格式：Key=值，Value = Score
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="startIndex">起始索引</param>
+        /// <param name="stopIndex">结束索引，-1表示到结束，0为1条</param>
+        /// <param name="desc">是否按降序排列</param>
+        /// <returns></returns>
+        public Dictionary<T, double> SortedSetRangeByRankWithScores<T>(string key, long startIndex = 0, long stopIndex = -1, LexicalOrder order = LexicalOrder.Ascending)
+        {
+            key = AddSysCustomKey(key);
+            Order orderBy = (Order)order;
+            var rValue = Do(redis => redis.SortedSetRangeByRankWithScores(key, startIndex, stopIndex, orderBy));
+            Dictionary<T, double> dicList = new Dictionary<T, double>();
+            foreach (var item in rValue)
+            {
+                dicList.Add(ConvertObj<T>(item.Element), item.Score);
+            }
+            return dicList;
+        }
+
+        /// <summary>
+        /// 获取分数（Score）从 minScore 开始的 maxScore 的数据，然后根据分数Scores排序，再根据value进行排序
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="minScore">最小分数</param>
+        /// <param name="maxScore">最大分数</param>
+        /// <param name="order">分数Score与值value的排序规则</param>
+        /// <returns></returns>
+        public List<T> SortedSetRangeByScore<T>(string key, double minScore = double.NegativeInfinity, double maxScore = double.PositiveInfinity, LexicalOrder order = LexicalOrder.Ascending, RangeType rangeType = RangeType.None)
+        {
+            key = AddSysCustomKey(key);
+            Order orderBy = (Order)order;
+            Exclude exclude = (Exclude)rangeType;
+            var rValue = Do(redis => redis.SortedSetRangeByScore(key, minScore, maxScore, exclude, orderBy));
+            return ConvetList<T>(rValue);
+        }
+
+        /// <summary>
+        /// 根据Score排序 获取分数（Score）从 minScore 开始的 maxScore 的数据，数据包含Score，返回数据格式：Key=值，Value = Score
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="minScore">最小分数</param>
+        /// <param name="maxScore">最大分数</param>
+        /// <param name="desc">分数Score与值value的排序规则</param>
+        /// <returns></returns>
+        public Dictionary<T, double> SortedSetRangeByScoreWithScores<T>(string key, double minScore = double.NegativeInfinity, double maxScore = double.PositiveInfinity, LexicalOrder order = LexicalOrder.Ascending, RangeType rangeType = RangeType.None)
+        {
+            key = AddSysCustomKey(key);
+            Order orderBy = (Order)order;
+            Exclude exclude = (Exclude)rangeType;
+            var rValue = Do(redis => redis.SortedSetRangeByScoreWithScores(key, minScore, maxScore, exclude, orderBy));
+            Dictionary<T, double> dicList = new Dictionary<T, double>();
+            foreach (var item in rValue)
+            {
+                dicList.Add(ConvertObj<T>(item.Element), item.Score);
+            }
+            return dicList;
+        }
+
+        /// <summary>
+        /// 获取全部
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public List<T> SortedSetRangeByRank<T>(string key)
+        {
+            key = AddSysCustomKey(key);
+            return Do(redis =>
+            {
+                var values = redis.SortedSetRangeByRank(key);
+                return ConvetList<T>(values);
+            });
+        }
+
+        /// <summary>
+        /// 获取指定起始值到结束值的集合数量
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="startValue">起始值</param>
+        /// <param name="endValue">结束值</param>
+        /// <param name="rangeType">开闭区间控制</param>
+        /// <returns></returns>
+        public long SortedSetLengthByValue<T>(string key, T startValue, T endValue, RangeType rangeType = RangeType.None)
+        {
+            key = AddSysCustomKey(key);
+            var sValue = ConvertJson<T>(startValue);
+            var eValue = ConvertJson<T>(endValue);
+            return Do(redis => redis.SortedSetLengthByValue(key, sValue, eValue, (Exclude)rangeType));
         }
 
         /// <summary>
@@ -985,21 +1137,7 @@ namespace DbHelper.Redis
             return Do(redis => redis.SortedSetLength(key));
         }
 
-        /// <summary>
-        /// 获取指定起始值到结束值的集合数量
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="startValue">起始值</param>
-        /// <param name="endValue">结束值</param>
-        /// <returns></returns>
-        public long SortedSetLengthByValue<T>(string key, T startValue, T endValue)
-        {
-            key = AddSysCustomKey(key);
-            var sValue = ConvertJson<T>(startValue);
-            var eValue = ConvertJson<T>(endValue);
-            return Do(redis => redis.SortedSetLengthByValue(key, sValue, eValue));
-        }
+
 
         /// <summary>
         /// 获取指定Key的排序Score值
@@ -1097,99 +1235,7 @@ namespace DbHelper.Redis
             return Do(redis => redis.SortedSetRemoveRangeByScore(key, scoreSart, scoreStop));
         }
 
-        /// <summary>
-        /// 根据排序的索引 获取从 start 开始到 stop 的数据
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="start">起始数</param>
-        /// <param name="stop">-1表示到结束，0为1条</param>
-        /// <param name="desc">是否按降序排列</param>
-        /// <returns></returns>
-        public List<T> SortedSetRangeByRank<T>(string key, long start = 0, long stop = -1, bool desc = false)
-        {
-            key = AddSysCustomKey(key);
-            Order orderBy = desc ? Order.Descending : Order.Ascending;
-            var rValue = Do(redis => redis.SortedSetRangeByRank(key, start, stop, orderBy));
-            return ConvetList<T>(rValue);
-        }
 
-        /// <summary>
-        /// 根据排序的索引 获取索引从 start 开始到 stop 的数据 包含Score，返回数据格式：Key=值，Value = Score
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="start">起始数</param>
-        /// <param name="stop">-1表示到结束，0为1条</param>
-        /// <param name="desc">是否按降序排列</param>
-        /// <returns></returns>
-        public Dictionary<T, double> SortedSetRangeByRankWithScores<T>(string key, long start = 0, long stop = -1, bool desc = false)
-        {
-            key = AddSysCustomKey(key);
-            Order orderBy = desc ? Order.Descending : Order.Ascending;
-            var rValue = Do(redis => redis.SortedSetRangeByRankWithScores(key, start, stop, orderBy));
-            Dictionary<T, double> dicList = new Dictionary<T, double>();
-            foreach (var item in rValue)
-            {
-                dicList.Add(ConvertObj<T>(item.Element), item.Score);
-            }
-            return dicList;
-        }
-
-        /// <summary>
-        ///  根据Score排序 获取从 scoreStart 开始的 scoreStop 的数据
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="scoreStart">起始数</param>
-        /// <param name="scoreStop">-1表示到结束，0为1条</param>
-        /// <param name="desc">是否按降序排列</param>
-        /// <returns></returns>
-        public List<T> SortedSetRangeByScore<T>(string key, double scoreStart = 0, double scoreStop = -1, bool desc = false)
-        {
-            key = AddSysCustomKey(key);
-            Order orderBy = desc ? Order.Descending : Order.Ascending;
-            var rValue = Do(redis => redis.SortedSetRangeByScore(key, scoreStart, scoreStop, Exclude.None, orderBy));
-            return ConvetList<T>(rValue);
-        }
-
-        /// <summary>
-        /// 根据Score排序  获取从 start 开始的 stop 条数据包含Score，返回数据格式：Key=值，Value = Score
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="scoreStart">起始数</param>
-        /// <param name="scoreStop">-1表示到结束，0为1条</param>
-        /// <param name="desc">是否按降序排列</param>
-        /// <returns></returns>
-        public Dictionary<T, double> SortedSetRangeByScoreWithScores<T>(string key, double scoreStart = 0, double scoreStop = -1, bool desc = false)
-        {
-            key = AddSysCustomKey(key);
-            Order orderBy = desc ? Order.Descending : Order.Ascending;
-            var rValue = Do(redis => redis.SortedSetRangeByScoreWithScores(key, scoreStart, scoreStop, Exclude.None, orderBy));
-            Dictionary<T, double> dicList = new Dictionary<T, double>();
-            foreach (var item in rValue)
-            {
-                dicList.Add(ConvertObj<T>(item.Element), item.Score);
-            }
-            return dicList;
-        }
-        /// <summary>
-        /// 获取指定起始值到结束值的数据
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="startValue">起始值</param>
-        /// <param name="endValue">结束值</param>
-        /// <returns></returns>
-        public List<T> SortedSetRangeByValue<T>(string key, T startValue, T endValue)
-        {
-            key = AddSysCustomKey(key);
-            var sValue = ConvertJson<T>(startValue);
-            var eValue = ConvertJson<T>(endValue);
-            var rValue = Do(redis => redis.SortedSetRangeByValue(key, sValue, eValue));
-            return ConvetList<T>(rValue);
-        }
 
         /// <summary>
         /// 删除
@@ -1202,20 +1248,6 @@ namespace DbHelper.Redis
             return Do(redis => redis.SortedSetRemove(key, ConvertJson(value)));
         }
 
-        /// <summary>
-        /// 获取全部
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public List<T> SortedSetRangeByRank<T>(string key)
-        {
-            key = AddSysCustomKey(key);
-            return Do(redis =>
-            {
-                var values = redis.SortedSetRangeByRank(key);
-                return ConvetList<T>(values);
-            });
-        }
 
 
 
@@ -1400,7 +1432,7 @@ namespace DbHelper.Redis
 
         public IDatabase GetDatabase()
         {
-            return conn.GetDatabase(DbNum);
+            return conn.GetDatabase(dbNum);
         }
 
         public IServer GetServer(string hostAndPort)
@@ -1414,7 +1446,7 @@ namespace DbHelper.Redis
         /// <param name="customKey"></param>
         public void SetSysCustomKey(string customKey)
         {
-            CustomKey = customKey;
+            SysCustomKey = customKey;
         }
 
         #endregion 其他
