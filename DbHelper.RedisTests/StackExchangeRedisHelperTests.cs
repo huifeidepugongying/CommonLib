@@ -428,7 +428,7 @@ namespace DbHelper.Redis.Tests
         [TestMethod()]
         public void SortedSetRangeByScoreTest()
         {
-            StackExchangeRedisHelper helper = new StackExchangeRedisHelper(0, "127.0.0.1:6379");
+            StackExchangeRedisHelper helper = new StackExchangeRedisHelper();
             var data = helper.SortedSetRangeByScore<string>("name", 0, 2, CommEnum.LexicalOrder.Descending, CommEnum.RangeType.None);
             Assert.Fail();
         }

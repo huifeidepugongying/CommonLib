@@ -27,7 +27,7 @@ namespace DbHelper.Redis
         {
             get
             {
-                if (instance == null)
+                if (instance == null || !instance.IsConnected)
                 {
                     lock (Locker)
                     {
@@ -60,7 +60,11 @@ namespace DbHelper.Redis
             connectionString = connectionString ?? (RedisConnection == null ? "" : RedisConnection.ConnectionString);
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                return null;
+                Console.WriteLine("没有在配置文件的配置节connectionStrings中添加Redis的配置 RedisConnection信息，如：");
+                Console.WriteLine("<connectionStrings>");
+                Console.WriteLine("     < add name=\"RedisConnection\" connectionString=\"127.0.0.1:6379, allowadmin = true\"/>");
+                Console.WriteLine("</ connectionStrings>");
+                throw new Exception("没有在配置文件的配置节connectionStrings中添加Redis的配置 RedisConnection信息");
             }
             List<string> connList = new List<string>();
             connList.AddRange(connectionString.Split(",".ToCharArray()));
@@ -74,7 +78,6 @@ namespace DbHelper.Redis
             connect.ConfigurationChanged += MuxerConfigurationChanged;
             connect.HashSlotMoved += MuxerHashSlotMoved;
             connect.InternalError += MuxerInternalError;
-
             return connect;
         }
 
