@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.Redis", "DbHelper.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.RedisTests", "DbHelper.RedisTests\DbHelper.RedisTests.csproj", "{63B9F427-7C37-4ACB-B90F-D4B2960071C6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common.Test", "Common.Test", "{DBB139B4-DD61-4D84-A327-FF6249C7AD0C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.Redis.Test", "DbHelper.Redis.Test\DbHelper.Redis.Test.csproj", "{B122F283-F4E0-48BA-8229-F0383456D502}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,11 +27,16 @@ Global
 		{63B9F427-7C37-4ACB-B90F-D4B2960071C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63B9F427-7C37-4ACB-B90F-D4B2960071C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63B9F427-7C37-4ACB-B90F-D4B2960071C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B122F283-F4E0-48BA-8229-F0383456D502}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B122F283-F4E0-48BA-8229-F0383456D502}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B122F283-F4E0-48BA-8229-F0383456D502}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B122F283-F4E0-48BA-8229-F0383456D502}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5} = {2321DDA7-D88D-4978-8681-B21D66CE8D9D}
+		{B122F283-F4E0-48BA-8229-F0383456D502} = {DBB139B4-DD61-4D84-A327-FF6249C7AD0C}
 	EndGlobalSection
 EndGlobal

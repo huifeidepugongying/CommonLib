@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DbHelper.Redis.Interface
 {
-    interface IRedisHelper
+    public interface IRedisHelper
     {
 
         #region String 操作
