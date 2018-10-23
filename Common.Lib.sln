@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common.DbHelper", "Common.DbHelper", "{2321DDA7-D88D-4978-8681-B21D66CE8D9D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{2321DDA7-D88D-4978-8681-B21D66CE8D9D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.Redis", "DbHelper.Redis\DbHelper.Redis.csproj", "{F69913B6-51EC-495E-8B3A-91DC70FC1CF5}"
 EndProject
@@ -12,6 +12,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common.Test", "Common.Test", "{DBB139B4-DD61-4D84-A327-FF6249C7AD0C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelper.Redis.Test", "DbHelper.Redis.Test\DbHelper.Redis.Test.csproj", "{B122F283-F4E0-48BA-8229-F0383456D502}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullTextSearch", "FullTextSearch.Lucene\FullTextSearch.csproj", "{1466C0CC-A363-4E8D-897E-F442A32E0FE2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DbHelper", "DbHelper", "{619D65B1-377E-41CB-A4A7-C8061498D007}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FullTextSearch", "FullTextSearch", "{447AF0C5-A7FF-48C4-A981-F70391335EBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,12 +37,19 @@ Global
 		{B122F283-F4E0-48BA-8229-F0383456D502}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B122F283-F4E0-48BA-8229-F0383456D502}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B122F283-F4E0-48BA-8229-F0383456D502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1466C0CC-A363-4E8D-897E-F442A32E0FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1466C0CC-A363-4E8D-897E-F442A32E0FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1466C0CC-A363-4E8D-897E-F442A32E0FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1466C0CC-A363-4E8D-897E-F442A32E0FE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5} = {2321DDA7-D88D-4978-8681-B21D66CE8D9D}
+		{F69913B6-51EC-495E-8B3A-91DC70FC1CF5} = {619D65B1-377E-41CB-A4A7-C8061498D007}
 		{B122F283-F4E0-48BA-8229-F0383456D502} = {DBB139B4-DD61-4D84-A327-FF6249C7AD0C}
+		{1466C0CC-A363-4E8D-897E-F442A32E0FE2} = {447AF0C5-A7FF-48C4-A981-F70391335EBB}
+		{619D65B1-377E-41CB-A4A7-C8061498D007} = {2321DDA7-D88D-4978-8681-B21D66CE8D9D}
+		{447AF0C5-A7FF-48C4-A981-F70391335EBB} = {2321DDA7-D88D-4978-8681-B21D66CE8D9D}
 	EndGlobalSection
 EndGlobal

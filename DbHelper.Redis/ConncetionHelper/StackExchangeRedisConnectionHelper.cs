@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DbHelper.Redis
+namespace DbHelper.Redis.ConncetionHelper
 {
     public class StackExchangeRedisConnectionHelper
     {

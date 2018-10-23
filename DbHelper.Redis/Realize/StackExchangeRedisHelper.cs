@@ -1,4 +1,5 @@
 ﻿using DbHelper.Redis.CommEnum;
+using DbHelper.Redis.ConncetionHelper;
 using DbHelper.Redis.Interface;
 using Newtonsoft.Json;
 using StackExchange.Redis;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DbHelper.Redis
+namespace DbHelper.Redis.Realize
 {
     public class StackExchangeRedisHelper : IRedisHelper
     {
